@@ -38,13 +38,13 @@ public class ProjectController {
         return projectService.postProject(PostProjectRequest.builder().name(name).build());
     }
 
-    @PatchMapping
-    public PatchProjectResponse patchProject(@RequestParam final Long id, @RequestParam final String name) {
+    @PatchMapping("/{id}")
+    public PatchProjectResponse patchProject(@PathVariable final Long id, @RequestParam final String name) {
         return projectService.patchProject(PatchProjectRequest.builder().id(id).name(name).build());
     }
 
-    @DeleteMapping
-    public DeleteProjectResponse deleteProject(@RequestParam final Long id) throws IOException {
+    @DeleteMapping("/{id}")
+    public DeleteProjectResponse deleteProject(@PathVariable final Long id) throws IOException {
         return projectService.deleteProject(DeleteProjectRequest.builder().id(id).build());
     }
 }

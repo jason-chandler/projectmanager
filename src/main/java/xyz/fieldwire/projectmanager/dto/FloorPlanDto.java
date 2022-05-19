@@ -12,14 +12,20 @@ import java.sql.Timestamp;
 @EqualsAndHashCode(callSuper = true)
 public class FloorPlanDto extends CommonDto {
     private final Long projectId;
+    private final byte[] original;
+    private final byte[] thumb;
+    private final byte[] large;
     private Timestamp createdOn;
     private Timestamp modifiedOn;
 
     @Builder
-    private FloorPlanDto(FloorPlanEntity entity) {
+    private FloorPlanDto(FloorPlanEntity entity, byte[] original, byte[] thumb, byte[] large) {
         super(entity.getId(), entity.getName());
         BeanUtils.copyProperties(entity, this);
         this.projectId = entity.getProject().getId();
+        this.original = original;
+        this.thumb = thumb;
+        this.large = large;
     }
 
 }

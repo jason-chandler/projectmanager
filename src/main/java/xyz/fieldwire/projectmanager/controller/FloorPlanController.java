@@ -35,18 +35,33 @@ public class FloorPlanController {
         return floorPlanService.getById(GetFloorPlanRequest.builder().id(id).build());
     }
 
+    @GetMapping(value = "/{id}/images/original", produces = "image/png")
+    public byte[] getFloorPlanImageById(@PathVariable final Long id) {
+        return floorPlanService.getById(GetFloorPlanRequest.builder().id(id).build()).getResults().get(0).getOriginal();
+    }
+
+    @GetMapping(value = "/{id}/images/thumb", produces = "image/png")
+    public byte[] getFloorPlanThumbById(@PathVariable final Long id) {
+        return floorPlanService.getById(GetFloorPlanRequest.builder().id(id).build()).getResults().get(0).getThumb();
+    }
+
+    @GetMapping(value = "/{id}/images/large", produces = "image/png")
+    public byte[] getFloorPlanLargeById(@PathVariable final Long id) {
+        return floorPlanService.getById(GetFloorPlanRequest.builder().id(id).build()).getResults().get(0).getLarge();
+    }
+
     @PostMapping
-    public PostFloorPlanResponse postFloorPlan(@RequestParam @NotNull final Long projectId, @RequestPart @NotNull final MultipartFile file) {
+    public PostFloorPlanResponse postFloorPlan(@RequestParam @NotNull final Long projectId, @RequestPart @NotNull final MultipartFile file) throws IOException {
         return floorPlanService.postFloorPlan(PostFloorPlanRequest.builder().projectId(projectId).file(file).build());
     }
 
-    @PatchMapping
-    public PatchFloorPlanResponse patchFloorPlan(@RequestParam @NotNull final Long id, @RequestParam(required = false) final Long projectId, @RequestPart(required = false) final MultipartFile file) {
-        return floorPlanService.patchFloorPlan(PatchFloorPlanRequest.builder().id(id).projectId(projectId).file(file).build());
+    @PatchMapping("/{id}")
+    public PatchFloorPlanResponse patchFloorPlan(@PathVariable final Long id, @RequestParam(required = false) final String name, @RequestParam(required = false) final Long projectId, @RequestPart(required = false) final MultipartFile file) throws IOException {
+        return floorPlanService.patchFloorPlan(PatchFloorPlanRequest.builder().id(id).name(name).projectId(projectId).file(file).build());
     }
 
-    @DeleteMapping
-    public DeleteFloorPlanResponse patchFloorPlan(@RequestParam @NotNull final Long id) throws IOException {
+    @DeleteMapping("/{id}")
+    public DeleteFloorPlanResponse patchFloorPlan(@PathVariable final Long id) throws IOException {
         return floorPlanService.deleteFloorPlan(DeleteFloorPlanRequest.builder().id(id).build());
     }
 }

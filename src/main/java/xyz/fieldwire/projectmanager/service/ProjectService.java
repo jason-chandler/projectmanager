@@ -18,7 +18,10 @@ import xyz.fieldwire.projectmanager.service.response.GetProjectResponse;
 import xyz.fieldwire.projectmanager.service.response.PatchProjectResponse;
 import xyz.fieldwire.projectmanager.service.response.PostProjectResponse;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,12 +50,20 @@ public class ProjectService {
 
     @Transactional
     public PostProjectResponse postProject(PostProjectRequest request) {
-        return PostProjectResponse.builder().build();
+        ProjectEntity project = new ProjectEntity();
+        project.setName(request.getName());
+        project = projectRepository.save(project);
+        return PostProjectResponse.builder().id(project.getId()).build();
     }
 
     @Transactional
-    public PatchProjectResponse patchProject(PatchProjectRequest request) {
-        return PatchProjectResponse.builder().build();
+    public PatchProjectResponse patchProject(PatchProjectRequest request) throws ProjectNotFoundException {
+        ProjectEntity project = projectRepository.findById(request.getId()).orElseThrow(() -> new ProjectNotFoundException(request.getId()));
+        String name = Objects.nonNull(request.getName()) ? request.getName() : project.getName();
+        project.setName(name);
+        project.setModifiedOn(Timestamp.from(Instant.now()));
+        project = projectRepository.save(project);
+        return PatchProjectResponse.builder().id(project.getId()).build();
     }
 
     @Transactional
