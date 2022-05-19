@@ -6,8 +6,6 @@ import lombok.Getter;
 import org.springframework.beans.BeanUtils;
 import xyz.fieldwire.projectmanager.model.entity.FloorPlanEntity;
 
-import java.sql.Timestamp;
-
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class FloorPlanDto extends CommonDto {
@@ -15,8 +13,6 @@ public class FloorPlanDto extends CommonDto {
     private final byte[] original;
     private final byte[] thumb;
     private final byte[] large;
-    private Timestamp createdOn;
-    private Timestamp modifiedOn;
 
     @Builder
     private FloorPlanDto(FloorPlanEntity entity, byte[] original, byte[] thumb, byte[] large) {

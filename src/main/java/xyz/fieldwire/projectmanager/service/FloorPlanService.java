@@ -1,11 +1,11 @@
 package xyz.fieldwire.projectmanager.service;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import xyz.fieldwire.projectmanager.dto.FloorPlanDto;
 import xyz.fieldwire.projectmanager.model.entity.FloorPlanEntity;
 import xyz.fieldwire.projectmanager.model.entity.ProjectEntity;
@@ -24,10 +24,14 @@ import xyz.fieldwire.projectmanager.service.response.PostFloorPlanResponse;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystemNotFoundException;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,8 +75,8 @@ public class FloorPlanService {
         // Don't populate images when returning collection
         List<FloorPlanDto> results = resultPage.stream()
                 .map(result -> FloorPlanDto.builder()
-                        .entity(result)
-                        .build())
+                                .entity(result)
+                                .build())
                 .collect(Collectors.toList());
         return GetFloorPlanResponse.builder()
                 .results(results)
@@ -91,14 +95,58 @@ public class FloorPlanService {
         return PostFloorPlanResponse.builder().id(id).build();
     }
 
+    private void modifyFloorPlan(FloorPlanEntity floorPlan, Long projectId, String name) throws ProjectNotFoundException {
+        if(projectId != null) {
+            floorPlan.setProject(projectRepository
+                    .findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException(projectId)));
+        }
+        if(name != null) {
+            floorPlan.setName(name);
+        }
+    }
     @Transactional
-    public PatchFloorPlanResponse patchFloorPlan(PatchFloorPlanRequest request) {
-        return PatchFloorPlanResponse.builder().build();
+    public PatchFloorPlanResponse patchFloorPlan(PatchFloorPlanRequest request) throws FileSystemNotFoundException, IOException, ProjectNotFoundException {
+        Long id = request.getId();
+        Long projectId = request.getProjectId();
+        String name = request.getName();
+        MultipartFile file = request.getFile();
+        FloorPlanEntity floorPlan = floorPlanRepository.findById(id).orElseThrow(() -> new FloorPlanNotFoundException(id));
+        modifyFloorPlan(floorPlan, projectId, name);
+        if(file != null || name != null) {
+            String path = floorPlan.getPath();
+            InputStream inputStream = Objects.nonNull(file) ? file.getInputStream() : new ByteArrayInputStream(imageService.getImageIfExists(path));
+            if(name != null) {
+                deleteFloorPlansFromDisk(path);
+            }
+            writeFloorPlansToDisk(inputStream, id, floorPlan.getName(), Boolean.TRUE);
+        }
+        finalizeFloorPlan(floorPlan);
+        return PatchFloorPlanResponse.builder().id(id).build();
     }
 
     @Transactional
-    public DeleteFloorPlanResponse deleteFloorPlan(DeleteFloorPlanRequest request) {
-        return DeleteFloorPlanResponse.builder().build();
+    public Boolean cascadeDeleteFloorPlans(Set<FloorPlanEntity> floorPlans) throws IOException {
+        for (FloorPlanEntity floorPlan : floorPlans) {
+            deleteFloorPlansFromDisk(floorPlan.getPath());
+            floorPlanRepository.delete(floorPlan);
+        }
+        return Boolean.TRUE;
+    }
+
+    @Transactional
+    public DeleteFloorPlanResponse deleteFloorPlan(DeleteFloorPlanRequest request) throws IOException, FloorPlanNotFoundException {
+        FloorPlanEntity floorPlan = floorPlanRepository.findById(request.getId()).orElseThrow(() -> new FloorPlanNotFoundException(request.getId()));
+        deleteFloorPlansFromDisk(floorPlan.getPath());
+        floorPlanRepository.delete(floorPlan);
+        return DeleteFloorPlanResponse.builder().id(request.getId()).build();
+    }
+
+    private void deleteFloorPlansFromDisk(String path) throws IOException {
+        imageService.deleteImageIfExists(path);
+        imageService.deleteImageIfExists(path + THUMB_POSTFIX);
+        imageService.deleteImageIfExists(path + LARGE_POSTFIX);
+        imageService.deleteFolderIfExists(path);
     }
 
     private void writeFloorPlansToDisk(InputStream fileInput, Long id, String name, Boolean overwrite) throws IOException {

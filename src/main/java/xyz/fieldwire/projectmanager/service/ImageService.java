@@ -1,6 +1,5 @@
 package xyz.fieldwire.projectmanager.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -36,9 +35,12 @@ public class ImageService {
         return Objects.nonNull(uri) ? Path.of(CONTENT_ROOT + uri + "." + IMAGE_FORMAT) : null;
     }
 
+    public Path filePathResolver(String uri) {
+        return Objects.nonNull(uri) ? Path.of(CONTENT_ROOT + uri) : null;
+    }
+
     public byte[] getImageIfExists(String uri) {
         Path path = imagePathResolver(uri);
-        System.err.println(path.toString());
         try {
             if (Objects.nonNull(path) && Files.exists(path) && Files.isReadable(path)) {
                 return Files.readAllBytes(path);
@@ -57,6 +59,20 @@ public class ImageService {
             ImageIO.write(image, IMAGE_FORMAT, path.toFile());
         } else {
             throw new FileAlreadyExistsException(String.valueOf(path.getFileName()));
+        }
+    }
+
+    public void deleteImageIfExists(String uri) throws IOException {
+        Path path = imagePathResolver(uri);
+        if (Objects.nonNull(path)) {
+            Files.deleteIfExists(path);
+        }
+    }
+
+    public void deleteFolderIfExists(String uri) throws IOException {
+        Path path = filePathResolver(uri);
+        if (Objects.nonNull(path)) {
+            Files.deleteIfExists(path.getParent());
         }
     }
 }

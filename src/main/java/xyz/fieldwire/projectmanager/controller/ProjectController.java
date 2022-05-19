@@ -24,7 +24,7 @@ public class ProjectController {
 
     @GetMapping
     public GetProjectResponse getProjectCollection(@RequestParam(required = false) final Long id, @RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
-                                                   @RequestParam(required = false) @Positive final Integer pageSize) {
+                                         @RequestParam(required = false) @Positive final Integer pageSize) {
         return projectService.getCollection(GetProjectRequest.builder().id(id).pageNumber(pageNumber).pageSize(pageSize).build());
     }
 

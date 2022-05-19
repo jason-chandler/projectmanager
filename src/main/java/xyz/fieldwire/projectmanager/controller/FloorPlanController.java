@@ -26,7 +26,7 @@ public class FloorPlanController {
 
     @GetMapping
     public GetFloorPlanResponse getFloorPlanCollection(@RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
-                                                       @RequestParam(required = false) @Positive final Integer pageSize) {
+                                             @RequestParam(required = false) @Positive final Integer pageSize) {
         return floorPlanService.getCollection(GetFloorPlanRequest.builder().pageNumber(pageNumber).pageSize(pageSize).build());
     }
 
@@ -61,7 +61,7 @@ public class FloorPlanController {
     }
 
     @DeleteMapping("/{id}")
-    public DeleteFloorPlanResponse patchFloorPlan(@PathVariable final Long id) throws IOException {
+    public DeleteFloorPlanResponse deleteFloorPlan(@PathVariable final Long id) throws IOException {
         return floorPlanService.deleteFloorPlan(DeleteFloorPlanRequest.builder().id(id).build());
     }
 }

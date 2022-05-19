@@ -17,7 +17,11 @@ public class PostFloorPlanRequest extends CommonRequest {
     @Builder
     private PostFloorPlanRequest(Long projectId, String name, MultipartFile file) {
         this.projectId = projectId;
-        this.name = name;
         this.file = file;
+        if (Objects.nonNull(name)) {
+            this.name = name;
+        } else if (Objects.nonNull(file)) {
+            this.name = this.file.getOriginalFilename();
+        }
     }
 }
