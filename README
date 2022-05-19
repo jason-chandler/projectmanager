@@ -1,0 +1,156 @@
+A small application to manage construction projects and their floor plans.
+
+Installation:
+
+Prerequisites:
+OpenJDK 17 or 18: https://jdk.java.net/archive/
+HSQLDB: https://sourceforge.net/projects/hsqldb/files/
+
+* Some of the following assumes Windows as the operating system, change path separators as needed for Linux, BSD, macOS, or any other Unix-like
+
+1. Clone repo
+2. Start HSQLDB by opening a terminal in the "data" folder within the extraction location and running: 
+
+    java -cp ..\lib\hsqldb.jar org.hsqldb.server.Server --database.0 file.projectdb --dbname.0 projectdb
+
+3. Open another terminal in the same folder and enter the following if you'd like to view DB changes while POSTing to the endpoints:
+
+    java -classpath ..\lib\hsqldb.jar org.hsqldb.util.DatabaseManagerSwing
+
+    a. To connect to the running server, set the Type to HSQL Database Engine Standalone and the URL to jdbc:hsqldb:hsql://localhost/projectdb
+
+4. Start the Spring Boot backend by navigating to the ProjectManager repo folder in a terminal
+
+5. Ensure JDK 17+ is the first java.exe on your path or temporarily set the JAVA_HOME env variable using (as Admin if on Windows): 
+   
+    setx JAVA_HOME "C:\Users\chand\Downloads\jdk-17.0.2\bin" /M
+
+    or on Unix-like systems
+
+    export JAVA_HOME=/home/jason/jdk-17.0.2/bin
+
+6. Execute the maven tasks using the shortcuts in the folder:
+
+   .\mvnw clean spring-boot:run
+
+   ./mvn clean spring-boot:run
+
+7. Tomcat defaults to port 8080. For a detailed look at available endpoints and to try them out, navigate to the swagger-ui in your browser:
+
+http://localhost:8080/swagger-ui/
+
+
+Alternatively, some sample curl commands are below.
+
+GET /projects               Optional:  pageNumber: (int >= 0), pageSize: (int > 0)
+   Returns all projects that currently exist as well as any floor plans they have. Floor plan images are stripped due to message size.
+   pageSize and number can also be set.
+
+{
+  "message": "string",
+  "results": [
+    {
+      "floorPlans": [
+        {
+          "id": 0,
+          "large": "string",
+          "name": "string",
+          "original": "string",
+          "projectId": 0,
+          "thumb": "string"
+        }
+      ],
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "success": true
+}
+
+GET /projects/{id}
+   Returns 1 project with specified ID and its floor plans. Floor plan images are stripped due to message size.
+
+POST /projects  name: string         
+   Creates a new project with specified name. Its ID will be returned to you
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
+
+PATCH /projects/{id}   name: string
+   Modifies a project's name
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
+
+DELETE /projects/{id}
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
+
+
+GET /floor-plans
+   Returns all floor plans. Images are stripped due to message size.
+
+GET /floor-plans/{id}
+   Returns 1 floor plan with specified ID. Floor plan images are byte arrays in the return message.
+
+curl -X GET "http://localhost:8080/floor-plans/5" -H "accept: */*"
+
+{
+  "message": "string",
+  "results": [
+    {
+      "id": 0,
+      "large": "string",
+      "name": "string",
+      "original": "string",
+      "projectId": 0,
+      "thumb": "string"
+    }
+  ],
+  "success": true
+}
+
+GET /floor-plans/{id}/images/original
+GET /floor-plans/{id}/images/large
+GET /floor-plans/{id}/images/thumb
+   Convenience endpoints to view images without a client with base64 decoding capabilities.
+   Returns raw bytes of uploaded image in specified size. The bytes are not base64 encoded in this response.
+
+curl -X GET "http://localhost:8080/floor-plans/19/images/large" -H "accept: image/png"
+
+POST /floor-plans projectId: int    file: file                Optional: name: string         
+   Creates a new floor plan with specified name and image. The name will default to the file's name if none is given. 
+   Its ID will be returned to you.
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
+
+PATCH /floor-plans/{id}   Optional: projectId: int   name: string   file: file
+   Modifies a floor-plan's project, name, or image
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
+
+DELETE /floor-plans/{id}
+
+{
+  "id": 0,
+  "message": "string",
+  "success": true
+}
