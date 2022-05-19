@@ -23,9 +23,14 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    public GetProjectResponse getProject(@RequestParam(required = false) final Long id, @RequestParam(required = false) final String name, @RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
-                                         @RequestParam(required = false) @Positive final Integer pageSize) {
-        return projectService.getProject(GetProjectRequest.builder().id(id).pageNumber(pageNumber).pageSize(pageSize).build());
+    public GetProjectResponse getProjectCollection(@RequestParam(required = false) final Long id, @RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
+                                                   @RequestParam(required = false) @Positive final Integer pageSize) {
+        return projectService.getCollection(GetProjectRequest.builder().id(id).pageNumber(pageNumber).pageSize(pageSize).build());
+    }
+
+    @GetMapping("/{id}")
+    public GetProjectResponse getProjectById(@PathVariable final Long id) {
+        return projectService.getById(GetProjectRequest.builder().id(id).build());
     }
 
     @PostMapping

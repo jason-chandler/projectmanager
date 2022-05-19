@@ -22,12 +22,17 @@ import java.io.IOException;
 @RequestMapping("/floor-plans")
 @RequiredArgsConstructor
 public class FloorPlanController {
-    private FloorPlanService floorPlanService;
+    private final FloorPlanService floorPlanService;
 
     @GetMapping
-    public GetFloorPlanResponse getFloorPlan(@RequestParam(required = false) final Long id, @RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
-                                             @RequestParam(required = false) @Positive final Integer pageSize) {
-        return floorPlanService.getFloorPlan(GetFloorPlanRequest.builder().id(id).pageNumber(pageNumber).pageSize(pageSize).build());
+    public GetFloorPlanResponse getFloorPlanCollection(@RequestParam(required = false) @PositiveOrZero final Integer pageNumber,
+                                                       @RequestParam(required = false) @Positive final Integer pageSize) {
+        return floorPlanService.getCollection(GetFloorPlanRequest.builder().pageNumber(pageNumber).pageSize(pageSize).build());
+    }
+
+    @GetMapping("/{id}")
+    public GetFloorPlanResponse getFloorPlanById(@PathVariable final Long id) {
+        return floorPlanService.getById(GetFloorPlanRequest.builder().id(id).build());
     }
 
     @PostMapping

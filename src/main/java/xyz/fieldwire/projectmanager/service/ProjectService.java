@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.fieldwire.projectmanager.dto.ProjectDto;
 import xyz.fieldwire.projectmanager.model.entity.ProjectEntity;
 import xyz.fieldwire.projectmanager.model.repository.ProjectRepository;
+import xyz.fieldwire.projectmanager.service.exception.ProjectNotFoundException;
 import xyz.fieldwire.projectmanager.service.request.DeleteProjectRequest;
 import xyz.fieldwire.projectmanager.service.request.GetProjectRequest;
 import xyz.fieldwire.projectmanager.service.request.PatchProjectRequest;
@@ -25,14 +26,23 @@ import java.util.stream.Collectors;
 public class ProjectService {
     private ProjectRepository projectRepository;
 
-    public GetProjectResponse getProject(GetProjectRequest request) {
+    public GetProjectResponse getById(GetProjectRequest request) throws ProjectNotFoundException {
+        Long id = request.getId();
+        ProjectEntity result = projectRepository.findById(id).orElseThrow(() -> new ProjectNotFoundException(id));
+        List<ProjectDto> results = List.of(ProjectDto.builder().entity(result).build());
+        return GetProjectResponse.builder()
+                .results(results)
+                .build();
+    }
+
+    public GetProjectResponse getCollection(GetProjectRequest request) throws ProjectNotFoundException {
         Page<ProjectEntity> resultPage = projectRepository.findAll(PageRequest.of(request.getPageNumber(), request.getPageSize()));
         List<ProjectDto> results = resultPage.stream().map(result ->
                         ProjectDto.builder()
                                 .entity(result)
                                 .build())
                 .collect(Collectors.toList());
-        return GetProjectResponse.builder().results(results).build();
+        return GetProjectResponse.builder().message(results.isEmpty() ? "No projects have been created." : null).results(results).build();
     }
 
     @Transactional
